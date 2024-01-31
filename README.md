@@ -25,11 +25,11 @@ Characters that change should be encased in `[]`
 - `[abc]` represents looping through the letters `a`, `b`, `c` in order.
 - `[a-f]` represents looping through the letters from `a` to `f` alphabetaically
 
-These two directives can be combined. 
+These two directives can be combined.
 - `[aQc-f]` represents:
 - - `a`, `Q`, `c-f`
 
 ### Examples
-1. (AB){3}\[ab\] -> AB001a, AB001b, AB002a, AB021b, AB032a, etc
-2. {2}\[Aq\](BD) -> 01ABD, 01bBD, 02ABD, 02bBD, etc
-3. {1}\[a-d\]{8+} -> 1a8, 1a9, 1b8, 1b9, 1c8, 1c9, 1d8, 1d9, 2a8, etc
+1. `(AB){3}[ab]` -> AB001a, AB001b, AB002a, AB021b, AB032a, etc
+2. `{2}[Aq](BD)` -> 01ABD, 01bBD, 02ABD, 02bBD, etc
+3. `{1}[a-d]{8+}` -> 1a8, 1a9, 1b8, 1b9, 1c8, 1c9, 1d8, 1d9, 2a8, etc
