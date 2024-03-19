@@ -29,3 +29,9 @@ ignore = [
     "E501",
     "W605"
 ]
+
+[tool.flake8]
+exclude = [
+    "E501",
+    "W605"
+]
