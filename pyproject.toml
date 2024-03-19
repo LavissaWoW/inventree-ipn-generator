@@ -23,3 +23,9 @@ requires-python = ">=3.10"
 
 [project.entry-points."inventree_plugins"]
 IPNGenerator = 'ipn_generator.generator:AutoGenIPNPlugin'
+
+[tool.ruff.lint]
+ignore = [
+    "E501",
+    "W605"
+]
