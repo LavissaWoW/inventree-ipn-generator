@@ -9,7 +9,8 @@ from django.core.exceptions import ValidationError
 import logging
 import re
 
-logger = logging.getLogger('inventree')
+logger = logging.getLogger("inventree")
+
 
 def validate_pattern(pattern):
     """Validates pattern groups"""
@@ -19,74 +20,77 @@ def validate_pattern(pattern):
 
     return True
 
+
 class AutoGenIPNPlugin(EventMixin, SettingsMixin, InvenTreePlugin):
     """Plugin to generate IPN automatically"""
 
-    AUTHOR = 'Nichlas Walsøe'
-    DESCRIPTION = 'Plugin for automatically assigning IPN to parts created with empty IPN fields.'
-    VERSION = '0.1'
+    AUTHOR = "Nichlas Walsøe"
+    DESCRIPTION = (
+        "Plugin for automatically assigning IPN to parts created with empty IPN fields."
+    )
+    VERSION = "0.1"
 
     NAME = "IPNGenerator"
     SLUG = "ipngen"
     TITLE = "IPN Generator"
 
     SETTINGS = {
-        'ACTIVE': {
-            'name': ('Active'),
-            'description': ('IPN generator is active'),
-            'validator': bool,
-            'default': True
+        "ACTIVE": {
+            "name": ("Active"),
+            "description": ("IPN generator is active"),
+            "validator": bool,
+            "default": True,
         },
-        'ON_CREATE': {
-            'name': ('On Create'),
-            'description': ('Active when creating new parts'),
-            'validator': bool,
-            'default': True
+        "ON_CREATE": {
+            "name": ("On Create"),
+            "description": ("Active when creating new parts"),
+            "validator": bool,
+            "default": True,
         },
-       'ON_CHANGE': {
-            'name': ('On Edit'),
-            'description': ('Active when editing existing parts'),
-            'validator': bool,
-            'default': True
+        "ON_CHANGE": {
+            "name": ("On Edit"),
+            "description": ("Active when editing existing parts"),
+            "validator": bool,
+            "default": True,
         },
-        'PATTERN': {
-            'name': ('IPN pattern'),
-            'description': ('Pattern for IPN generation'),
-            'default': "(12)[a-z][a-d]",
-            'validator': validate_pattern
+        "PATTERN": {
+            "name": ("IPN pattern"),
+            "description": ("Pattern for IPN generation"),
+            "default": "(12)[a-z][a-d]",
+            "validator": validate_pattern,
         },
     }
 
-    min_pattern_char = ord('A')
-    max_pattern_char = ord('Z')
-    skip_chars = range(ord('['), ord('a'))
+    min_pattern_char = ord("A")
+    max_pattern_char = ord("Z")
+    skip_chars = range(ord("["), ord("a"))
 
     def wants_process_event(self, event):
         """Lets InvenTree know what events to listen for."""
 
-        if not self.get_setting('ACTIVE'):
+        if not self.get_setting("ACTIVE"):
             return False
 
-        if (event == 'part_part.saved'):
-            return self.get_setting('ON_CHANGE')
+        if event == "part_part.saved":
+            return self.get_setting("ON_CHANGE")
 
-        if (event == 'part_part.created'):
-            return self.get_setting('ON_CREATE')
+        if event == "part_part.created":
+            return self.get_setting("ON_CREATE")
 
         return False
 
     def process_event(self, event, *args, **kwargs):
         """Main plugin handler function"""
 
-        if not self.get_setting('ACTIVE'):
+        if not self.get_setting("ACTIVE"):
             return False
 
-        id = kwargs.pop('id', None)
-        model = kwargs.pop('model', None)
+        id = kwargs.pop("id", None)
+        model = kwargs.pop("model", None)
 
         # Events can fire on unrelated models
         if model != "Part":
-            logger.debug('IPN Generator: Event Model is not part')
+            logger.debug("IPN Generator: Event Model is not part")
             return
 
         # Don't create IPNs for parts with IPNs
@@ -95,7 +99,7 @@ class AutoGenIPNPlugin(EventMixin, SettingsMixin, InvenTreePlugin):
             return
 
         expression = self.construct_regex(True)
-        latest = Part.objects.filter(IPN__regex=expression).order_by('-IPN').first()
+        latest = Part.objects.filter(IPN__regex=expression).order_by("-IPN").first()
 
         if not latest:
             part.IPN = self.construct_first_ipn()
@@ -107,51 +111,52 @@ class AutoGenIPNPlugin(EventMixin, SettingsMixin, InvenTreePlugin):
 
         return
 
-
     def construct_regex(self, disable_groups=False):
         """Constructs a valid regex from provided IPN pattern.
         This regex is used to find the latest assigned IPN
         """
-        regex = '^'
+        regex = "^"
 
-        m = re.findall(r"(\{\d+\+?\})|(\([\w\(\)]+\))|(\[(?:\w+|\w-\w)+\])", self.get_setting('PATTERN'))
+        m = re.findall(
+            r"(\{\d+\+?\})|(\([\w\(\)]+\))|(\[(?:\w+|\w-\w)+\])",
+            self.get_setting("PATTERN"),
+        )
 
         for idx, group in enumerate(m):
             numeric, literal, character = group
             # Numeric, increment
             if numeric:
                 start = "+" in numeric
-                r = ''
                 g = numeric.strip("{}+")
                 if start:
-                    regex += '('
+                    regex += "("
                     if not disable_groups:
-                        regex += f'?P<Np{g}i{idx}>'
+                        regex += f"?P<Np{g}i{idx}>"
                     for char in g:
-                        regex += f'[{char}-9]'
+                        regex += f"[{char}-9]"
                 else:
-                    regex += '('
+                    regex += "("
                     if not disable_groups:
-                        regex += f'?P<N{g}i{idx}>'
-                    regex += f'\d{ {int(g)} }'
-                regex += ')'
+                        regex += f"?P<N{g}i{idx}>"
+                    regex += f"\d{ {int(g)} }"
+                regex += ")"
 
             # Literal, won't change
             if literal:
-                l = literal.strip("()")
-                regex += '('
+                lit = literal.strip("()")
+                regex += "("
                 if not disable_groups:
-                    regex += f'?P<Li{idx}>'
-                regex += f'{re.escape(l)})'
+                    regex += f"?P<Li{idx}>"
+                regex += f"{re.escape(lit)})"
 
             # Letters, a collection or sequence
             # Sequences incremented using ASCII
             if character:
-                regex += '('
+                regex += "("
                 if not disable_groups:
-                    regex += f'?P<C'
+                    regex += "?P<C"
 
-                sequences = re.findall(r'(\w)(?!-)|(\w\-\w)', character)
+                sequences = re.findall(r"(\w)(?!-)|(\w\-\w)", character)
 
                 exp = []
                 for seq in sequences:
@@ -162,13 +167,12 @@ class AutoGenIPNPlugin(EventMixin, SettingsMixin, InvenTreePlugin):
                     elif range:
                         exp.append(range)
 
-
                 if not disable_groups:
                     regex += f'{"_".join(exp).replace("-", "")}i{idx}>'
                 regex += f'[{"".join(exp)}]'
-                regex += ')'
+                regex += ")"
 
-        regex += '$'
+        regex += "$"
 
         return regex
 
@@ -183,17 +187,16 @@ class AutoGenIPNPlugin(EventMixin, SettingsMixin, InvenTreePlugin):
         incremented = False
 
         for key, val in reversed(m.groupdict().items()):
+            type, _ = key.split("i")
 
-            type, idx = key.split('i')
-
-            if incremented or type == 'L':
+            if incremented or type == "L":
                 ipn_list.append(val)
                 continue
 
-            if type == 'N':
-                ipn_list.append(str(int(val)+1))
+            if type == "N":
+                ipn_list.append(str(int(val) + 1))
                 incremented = True
-            elif type.startswith('C'):
+            elif type.startswith("C"):
                 integerized_char = ord(val)
                 choices = type[1:].split("_")
 
@@ -222,13 +225,12 @@ class AutoGenIPNPlugin(EventMixin, SettingsMixin, InvenTreePlugin):
                             incremented = True
                             break
 
-            elif type.startswith('N'):
-                if type[1] == 'p':
+            elif type.startswith("N"):
+                if type[1] == "p":
                     num = int(type[2:])
                 else:
                     num = int(type[1:])
-                if type[1] == 'p':
-                    starts = int(type[2:])
+                if type[1] == "p":
                     next = int(val) + 1
                     if len(str(next)) > len(type[2:]):
                         ipn_list.append(type[2:])
@@ -237,19 +239,20 @@ class AutoGenIPNPlugin(EventMixin, SettingsMixin, InvenTreePlugin):
                 elif len(str(int(val) + 1)) > num:
                     ipn_list.append(str(1).zfill(num))
                 else:
-                    ipn_list.append(str(int(val)+1).zfill(num))
+                    ipn_list.append(str(int(val) + 1).zfill(num))
                     incremented = True
 
         ipn_list.reverse()
         return "".join(ipn_list)
 
-
-
     def construct_first_ipn(self):
         """No IPNs matching the pattern were found. Constructing the first IPN."""
-        m = re.findall(r"(\{\d+\+?\})|(\([\w\(\)]+\))|(\[(?:\w+|(?:\w-\w)+)\])", self.get_setting('PATTERN'))
+        m = re.findall(
+            r"(\{\d+\+?\})|(\([\w\(\)]+\))|(\[(?:\w+|(?:\w-\w)+)\])",
+            self.get_setting("PATTERN"),
+        )
 
-        ipn = ''
+        ipn = ""
 
         for group in m:
             numeric, literal, character = group

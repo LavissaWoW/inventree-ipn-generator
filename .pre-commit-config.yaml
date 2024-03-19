@@ -7,3 +7,14 @@ repos:
     -   id: check-yaml
     -   id: mixed-line-ending
     -   id: check-toml
+
+-   repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.3.3
+    hooks:
+    - id: ruff-format
+      args: [--preview]
+    - id: ruff
+      args: [
+        --fix,
+        --preview
+      ]
