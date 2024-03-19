@@ -67,9 +67,11 @@ jobs:
       - name: Setup IPN Generator Plugin
         run: |
           cd /home/inventree
-          pip3 install -e $GITHUB_WORKSPACE
+          HOME=/root pip3 install -e $GITHUB_WORKSPACE
 
-          invoke migrate
+          HOME=/root pip3 install django-test-migrations==1.2.0 coverage==7.4.1 django_slowtests==1.1.1
+
+          HOME=/root invoke migrate
 
       - name: Run Tests
         run: |
