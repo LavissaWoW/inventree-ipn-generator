@@ -5,7 +5,7 @@ build-backend = 'setuptools.build_meta'
 [project]
 name = "inventree-ipn-generator"
 version = "0.1"
-description = "InvenTree plugin to autogen ipn"
+description = "InvenTree plugin to automatically generate and assign Internal Part Numbers to parts"
 authors = [
     {name = "Nichlas Walsøe", email = "lavissawow@gmail.com"}
 ]
@@ -16,10 +16,10 @@ classifiers = [
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
 ]
-requires-python = ">=3.11"
+requires-python = ">=3.10"
 
 [project.urls]
 "Homepage" = "https://github.com/LavissaWoW/inventree-ipn-generator"
 
 [project.entry-points."inventree_plugins"]
-IPNGenerator = 'generator:AutoGenIPNPlugin'
+IPNGenerator = 'ipn_generator.generator:AutoGenIPNPlugin'

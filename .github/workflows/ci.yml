@@ -1,0 +1,75 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  style:
+    name: "Style Checks"
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
+
+      - name: Install dependencies
+        run: |
+          pip install flake8
+          pip install pep8-naming
+
+      - name: Perform Style Check
+        run: |
+          flake8 .
+
+  test-plugin:
+    name: "Unit Tests"
+    runs-on: ubuntu-latest
+
+    container:
+      image: inventree/inventree:latest
+      env:
+        INVENTREE_DB_ENGINE: postgresql
+        INVENTREE_DB_NAME: inventree
+        INVENTREE_DB_HOST: db
+        INVENTREE_DB_PORT: 5432
+        INVENTREE_DB_USER: inventree
+        INVENTREE_DB_PASSWORD: inventree
+        INVENTREE_PLUGINS_ENABLED: True
+        INVENTREE_PLUGIN_TESTING: True
+        PLUGIN_TESTING_EVENTS: True
+        INVENTREE_PLUGIN_TESTING_SETUP: True
+
+    services:
+      db:
+        image: postgres:13
+        ports:
+          - 5432:5432
+        env:
+          POSTGRES_USER: inventree
+          POSTGRES_PASSWORD: inventree
+          POSTGRES_DB: inventree
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Setup InvenTree
+        run: |
+          cd /home/inventree
+          pip3 install --no-cache-dir --disable-pip-version-check -U -r requirements.txt
+
+      - name: Setup IPN Generator Plugin
+        run: |
+          cd /home/inventree
+          pip3 install -e $GITHUB_WORKSPACE
+
+      - name: Run Tests
+        run: |
+          cd /home/inventree
+          invoke test
