@@ -33,6 +33,7 @@ jobs:
 
     container:
       image: inventree/inventree:latest
+      options: --user root
       env:
         INVENTREE_DB_ENGINE: postgresql
         INVENTREE_DB_NAME: inventree
@@ -63,7 +64,7 @@ jobs:
       - name: Setup InvenTree
         run: |
           cd /home/inventree
-          pip3 install --no-cache-dir --disable-pip-version-check -U -r requirements.txt
+          HOME=/root pip3 install --no-cache-dir --disable-pip-version-check -U -r requirements.txt
 
       - name: Setup IPN Generator Plugin
         run: |
