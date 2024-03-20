@@ -44,6 +44,7 @@ jobs:
         INVENTREE_PLUGIN_TESTING: True
         PLUGIN_TESTING_EVENTS: True
         INVENTREE_PLUGIN_TESTING_SETUP: True
+        INVENTREE_SITE_URL: http://localhost:8000
 
     services:
       db:
