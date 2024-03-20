@@ -79,4 +79,4 @@ jobs:
         run: |
           cd /home/inventree
 
-          InvenTree/manage.py test ipn_generator.tests.test_IPNGenerator
+          HOME=/root InvenTree/manage.py test ipn_generator.tests.test_IPNGenerator
