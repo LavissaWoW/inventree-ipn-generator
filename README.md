@@ -31,6 +31,16 @@ All groups can be combined in any order.
 
 A pattern cannot consist of _only_ Literals.
 
+For any pattern, only the rightmost non-literal group will be incremented.
+When this group rolls over its max, the next non-literal group to the left will be incremented.
+Example: Given the groups (named for demo): L1C1N1C2L2
+Incrementing follows this order: C2, N1, C1.
+
+> **_NOTE:_** When C1 in the above example rolls over, the plugin will loop back to the first IPN.
+> This will cause duplicate IPNs if your InvenTree allows duplicate IPNs.
+> If your InvenTree does not allow duplicate IPNs, this will cause an error at the moment!
+> This will be addressed in an upcoming update.
+
 ### Literals (Immutable)
 Anything encased in `()` will be rendered as-is. no change will be made to anything within.
 
@@ -41,7 +51,7 @@ Numbers that should change over time should be encased in `{}`
 - `{5}` respresents a number with max 5 digits
 - `{25+}` represents a number 25-99
 
-Example: `{5+}{3}` will result in this range: 5000-5999
+Example: `{5+}{3}` will result in this range: 5000-9999
 
 ### Characters
 Characters that change should be encased in `[]`
