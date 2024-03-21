@@ -1,5 +1,3 @@
-"""Does this need to be here maybe?"""
-
 from plugin import InvenTreePlugin
 from plugin.mixins import EventMixin, SettingsMixin
 from part.models import Part
@@ -24,11 +22,13 @@ def validate_pattern(pattern):
 class AutoGenIPNPlugin(EventMixin, SettingsMixin, InvenTreePlugin):
     """Plugin to generate IPN automatically"""
 
-    AUTHOR = "Nichlas Walsøe"
+    AUTHOR = "Nichlas W."
     DESCRIPTION = (
-        "Plugin for automatically assigning IPN to parts created with empty IPN fields."
+        "Plugin for automatically assigning IPN to parts created with empty IPN fields.\
+        IPN pattern syntax can be found on the website linked here."
     )
     VERSION = "0.1"
+    WEBSITE = "https://github.com/LavissaWoW/inventree-ipn-generator"
 
     NAME = "IPNGenerator"
     SLUG = "ipngen"
@@ -36,27 +36,27 @@ class AutoGenIPNPlugin(EventMixin, SettingsMixin, InvenTreePlugin):
 
     SETTINGS = {
         "ACTIVE": {
-            "name": ("Active"),
-            "description": ("IPN generator is active"),
+            "name": "Active",
+            "description": "IPN generator is active",
             "validator": bool,
             "default": True,
         },
         "ON_CREATE": {
-            "name": ("On Create"),
-            "description": ("Active when creating new parts"),
+            "name": "On Create",
+            "description": "Active when creating new parts",
             "validator": bool,
             "default": True,
         },
         "ON_CHANGE": {
-            "name": ("On Edit"),
-            "description": ("Active when editing existing parts"),
+            "name": "On Edit",
+            "description": "Active when editing existing parts",
             "validator": bool,
-            "default": True,
+            "default": False,
         },
         "PATTERN": {
-            "name": ("IPN pattern"),
-            "description": ("Pattern for IPN generation"),
-            "default": "(12)[a-z][a-d]",
+            "name": "IPN pattern",
+            "description": "Pattern for IPN generation (See website for guide)",
+            "default": "(IPN-){4}",
             "validator": validate_pattern,
         },
     }

@@ -3,7 +3,8 @@ from django.core.exceptions import ValidationError
 import logging
 
 from django.conf import settings
-from part.models import Part, PartCategory
+from part.models import PartCategory, SupplierPart, Part
+from company.models import Company
 from common.models import InvenTreeSetting
 
 from plugin import registry
@@ -379,3 +380,29 @@ class IPNGeneratorCombiningTests(TestCase):
 
         part = Part.objects.get(pk=p.pk)
         self.assertEqual(part.IPN, "a26")
+
+
+class IPNGeneratorModelTests(TestCase):
+    """Verify model behaviours"""
+
+    def setUp(self):
+        """Set up test environment"""
+        setup_func(self)
+
+    def tearDown(self):
+        """Teardown test environment"""
+        teardown_func()
+
+    def test_supplier_part_does_not_trigger_plugin(self):
+        """Supplier parts events should not trigger the plugin"""
+
+        cat = PartCategory.objects.all().first()
+        part = Part.objects.create(category=cat, name="PartName")
+        supplier = Company.objects.create(name="Suppliercompany", currency="USD")
+
+        with self.assertLogs(logger=logger, level="DEBUG") as cm:
+            SupplierPart.objects.create(part=part, SKU="abc", supplier=supplier)
+            self.assertNotIn(
+                "DEBUG:inventree:Plugin 'ipngen' is processing triggered event 'part_part.created'",
+                cm[1],
+            )

@@ -5,8 +5,6 @@ This is a plugin for [InvenTree](https://github.com/inventree/InvenTree/).
 Installing this plugin enables the automatic generation if Internal Part Numbers (IPN) for parts.
 
 ## Installation
-NOT YET PUBLISHED!
-
 To automatically install the plugin when running `invoke install`:
 Add `inventree-ipn-generator` to your plugins.txt file.
 
@@ -15,6 +13,9 @@ Or, install the plugin manually:
 ```
 pip install inventree-ipn-generator
 ```
+
+For the plugin to be listed as available, you need to enable "Event Integration" in your plugin settings.
+This setting is located with the Plugin Settings on the settings page.
 
 ## Settings
 
