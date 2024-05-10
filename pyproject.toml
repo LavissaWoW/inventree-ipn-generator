@@ -4,7 +4,7 @@ build-backend = 'setuptools.build_meta'
 
 [project]
 name = "inventree-ipn-generator"
-version = "0.1"
+version = "0.1.1"
 description = "InvenTree plugin to automatically generate and assign Internal Part Numbers to parts"
 authors = [
     {name = "Nichlas Walsøe", email = "lavissawow@gmail.com"}
