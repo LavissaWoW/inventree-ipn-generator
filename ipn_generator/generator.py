@@ -9,6 +9,8 @@ import re
 
 logger = logging.getLogger("inventree")
 
+PERMITTED_SPECIAL_LITERALS = "\-.:/\\"
+
 
 def validate_pattern(pattern):
     """Validates pattern groups"""
@@ -118,7 +120,7 @@ class AutoGenIPNPlugin(EventMixin, SettingsMixin, InvenTreePlugin):
         regex = "^"
 
         m = re.findall(
-            r"(\{\d+\+?\})|(\([\w\(\)]+\))|(\[(?:\w+|\w-\w)+\])",
+            r"(\{\d+\+?\})|(\([\w\(\)\-.:/\\]+\))|(\[(?:\w+|\w-\w)+\])",
             self.get_setting("PATTERN"),
         )
 
@@ -248,7 +250,7 @@ class AutoGenIPNPlugin(EventMixin, SettingsMixin, InvenTreePlugin):
     def construct_first_ipn(self):
         """No IPNs matching the pattern were found. Constructing the first IPN."""
         m = re.findall(
-            r"(\{\d+\+?\})|(\([\w\(\)]+\))|(\[(?:\w+|(?:\w-\w)+)\])",
+            r"(\{\d+\+?\})|(\([\w\(\)\-.:/\\]+\))|(\[(?:\w+|(?:\w-\w)+)\])",
             self.get_setting("PATTERN"),
         )
 
