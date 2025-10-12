@@ -204,6 +204,38 @@ class InvenTreeIPNGeneratorNumericGroupTests(TestCase):
 
         self.assertEqual(part.IPN, "12")
 
+    def test_category_metadata_prefix_overrides_pattern_literal(self):
+        """A prefix defined on the part category should override the pattern literal."""
+
+        self.plugin.set_setting("PATTERN", "(IPN-){4}")
+
+        cat = PartCategory.objects.all().first()
+
+        try:
+            if hasattr(cat, "set_metadata"):
+                cat.set_metadata("prefix", "A1CC")
+                cat.save()
+            else:
+                metadata = getattr(cat, "metadata", {}) or {}
+                metadata["prefix"] = "A1CC"
+                cat.metadata = metadata
+                cat.save()
+
+            new_part = Part.objects.create(category=cat, name="PartName")
+
+            part = Part.objects.get(pk=new_part.pk)
+
+            self.assertEqual(part.IPN, "A1CC0001")
+        finally:
+            if hasattr(cat, "set_metadata"):
+                cat.set_metadata("prefix", None)
+                cat.save()
+            else:
+                metadata = getattr(cat, "metadata", {}) or {}
+                metadata.pop("prefix", None)
+                cat.metadata = metadata
+                cat.save()
+
     def test_add_numeric_with_prepend_zero(self):
         """Verify that numeric patterns work."""
 
