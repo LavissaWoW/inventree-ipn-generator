@@ -100,28 +100,69 @@ class AutoGenIPNPlugin(EventMixin, SettingsMixin, InvenTreePlugin):
         if part.IPN:
             return
 
-        expression = self.construct_regex(True)
+        pattern = self.get_pattern_for_part(part)
+
+        expression = self.construct_regex(pattern, True)
         latest = Part.objects.filter(IPN__regex=expression).order_by("-IPN").first()
 
         if not latest:
-            part.IPN = self.construct_first_ipn()
+            part.IPN = self.construct_first_ipn(pattern)
         else:
-            grouped_expression = self.construct_regex()
+            grouped_expression = self.construct_regex(pattern)
             part.IPN = self.increment_ipn(grouped_expression, latest.IPN)
 
         part.save()
 
         return
 
-    def construct_regex(self, disable_groups=False):
+    def get_pattern_for_part(self, part):
+        """Return the pattern for a given part, applying category metadata overrides."""
+
+        pattern = self.get_setting("PATTERN")
+
+        if not part:
+            return pattern
+
+        category = getattr(part, "category", None)
+        if not category:
+            return pattern
+
+        prefix = None
+
+        if hasattr(category, "get_metadata"):
+            try:
+                prefix = category.get_metadata("prefix", None)
+            except TypeError:
+                prefix = category.get_metadata("prefix")
+            except Exception:  # pragma: no cover - defensive, depends on InvenTree version
+                prefix = None
+        elif hasattr(category, "metadata"):
+            metadata = category.metadata or {}
+            prefix = metadata.get("prefix")
+
+        if not prefix:
+            return pattern
+
+        allowed = rf"[^0-9A-Za-z{PERMITTED_SPECIAL_LITERALS}]"
+        sanitized_prefix = re.sub(allowed, "", str(prefix))
+
+        if not sanitized_prefix:
+            return pattern
+
+        return re.sub(r"\([\w\(\)\-.:/\\]+\)", f"({sanitized_prefix})", pattern, count=1)
+
+    def construct_regex(self, pattern=None, disable_groups=False):
         """Constructs a valid regex from provided IPN pattern.
         This regex is used to find the latest assigned IPN
         """
         regex = "^"
 
+        if pattern is None:
+            pattern = self.get_setting("PATTERN")
+
         m = re.findall(
             r"(\{\d+\+?\})|(\([\w\(\)\-.:/\\]+\))|(\[(?:\w+|\w-\w)+\])",
-            self.get_setting("PATTERN"),
+            pattern,
         )
 
         for idx, group in enumerate(m):
@@ -247,11 +288,15 @@ class AutoGenIPNPlugin(EventMixin, SettingsMixin, InvenTreePlugin):
         ipn_list.reverse()
         return "".join(ipn_list)
 
-    def construct_first_ipn(self):
+    def construct_first_ipn(self, pattern=None):
         """No IPNs matching the pattern were found. Constructing the first IPN."""
+
+        if pattern is None:
+            pattern = self.get_setting("PATTERN")
+
         m = re.findall(
             r"(\{\d+\+?\})|(\([\w\(\)\-.:/\\]+\))|(\[(?:\w+|(?:\w-\w)+)\])",
-            self.get_setting("PATTERN"),
+            pattern,
         )
 
         ipn = ""
