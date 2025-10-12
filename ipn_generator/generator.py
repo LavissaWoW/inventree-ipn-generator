@@ -9,7 +9,7 @@ import re
 
 logger = logging.getLogger("inventree")
 
-PERMITTED_SPECIAL_LITERALS = "\-.:/\\"
+PERMITTED_SPECIAL_LITERALS = r"\-.:/\\"
 
 
 def validate_pattern(pattern):
@@ -143,7 +143,7 @@ class AutoGenIPNPlugin(EventMixin, SettingsMixin, InvenTreePlugin):
         if not prefix:
             return pattern
 
-        allowed = rf"[^0-9A-Za-z{PERMITTED_SPECIAL_LITERALS}]"
+        allowed = rf"[^0-9A-Za-z{re.escape(PERMITTED_SPECIAL_LITERALS)}]"
         sanitized_prefix = re.sub(allowed, "", str(prefix))
 
         if not sanitized_prefix:
